@@ -125,7 +125,7 @@ class Busqueda_Canelo_Public {
 		global $wp;
 		$URL = home_url( add_query_arg( array(), $wp->request ) );
 		$URL_SUBMIT = $URL.'/categoria-producto/';
-		$URL_VACIA = $URL.'/productos/';
+		$URL_VACIA = $URL.'/?s=';
 		
 		require plugin_dir_path(__FILE__).'partials/busqueda-canelo-public-conexion.php'; 
 		require plugin_dir_path(__FILE__).'partials/busqueda-canelo-public-display.php';

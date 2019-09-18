@@ -51,7 +51,7 @@
 			        </select>
 			    </th>
 			    <th>
-			    	<input type="text" name="buscador_anio">
+			    	<input type="number" name="buscador_anio" id="buscador_anio"placeholder="Opcional"/>
 			    </th>
 			    <th><!-----------Paso de variables PHP con las URL generadas para su uso posterior en JS----------------------------------------->
 			    	<input type="hidden" name="URL_busqueda" id="URL_busqueda" value="<?php echo $URL_SUBMIT; ?>" />
