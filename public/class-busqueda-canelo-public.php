@@ -107,39 +107,31 @@ class Busqueda_Canelo_Public {
 		//enqueueing the script
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/busqueda-canelo-public.js', array( 'jquery' ), $this->version, false );
 		/*-------------------------------BUSQUEDA-------------------------------------------*/
-		//Registration of the ajax script
-		wp_register_script($this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/busqueda-canelo-public-submit.js', array( 'jquery' ), $this->version, false );
-		//Passing the ajax admin route to the script
-		wp_localize_script($this->plugin_name, 'php_vars', array( 'ajax_url' => admin_url('admin-ajax.php') ));
-		//enqueueing the script
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/busqueda-canelo-public-submit.js', array( 'jquery' ), $this->version, false );
 
 	}
-
+	/*--------------- Funcion que se manda llamar con el post de las llamadas AJAX-------*/
 	public function actualizar(){
-		if(isset($_POST["buscador_marca_label"])){
+		if(isset($_POST["buscador_marca_label"])){//aqui entra para el select dependiente
 			require plugin_dir_path(__FILE__).'partials/busqueda-canelo-public-update-select.php';
 		}
-		if(isset($_POST["marca_label"])){
+		if(isset($_POST["marca_label"])){//Aqui entra para obtener el correspondiente al id del select seleccionado
 			require plugin_dir_path(__FILE__).'partials/busqueda-canelo-public-submit.php';
 		}
 		die();
 	}
-
+	/*----------------------- Funcion principal para el display y funcionamiento general---------*/
 	public function public_search_page(){
 		ob_start();
 		global $wp;
 		$URL = home_url( add_query_arg( array(), $wp->request ) );
 		$URL_SUBMIT = $URL.'/categoria-producto/';
+		$URL_VACIA = $URL.'/productos/';
 		
 		require plugin_dir_path(__FILE__).'partials/busqueda-canelo-public-conexion.php'; 
 		require plugin_dir_path(__FILE__).'partials/busqueda-canelo-public-display.php';
-		/*if( file_exists( plugin_dir_path(__FILE__).'partials/busqueda-canelo-public-display.php' )){
-			//Entering if exists
-			require plugin_dir_path(__FILE__).'partials/busqueda-canelo-public-display.php';
-		}*/
 		return ob_get_clean();
 	}	
+	/*   ----Funcion que declara el shortcode y le liga la funcion principal a ejecutar-----   */
 	public function add_public_shortcodes(){
 		add_shortcode('elcanelo_busqueda_nueva', array($this,'public_search_page') );
 	}
