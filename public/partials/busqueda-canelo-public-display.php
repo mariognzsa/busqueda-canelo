@@ -31,7 +31,7 @@
 	    			$query = $conexion->query("SELECT rowid, label FROM doli_categorie WHERE fk_parent = 1");
             		$rowCount = $query->num_rows;
 	    			?> 
-			      	<select name="buscador_marca" id="buscador_marca" required>
+			      	<select name="buscador_marca" id="buscador_marca">
 			      		<option value="">Selecciona Marca</option>
 			      		<?php
 			      		if($rowCount > 0){

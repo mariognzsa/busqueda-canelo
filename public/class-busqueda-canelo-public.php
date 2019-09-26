@@ -177,18 +177,35 @@ class Busqueda_Canelo_Public {
 		$IDposts = array();
 		$rowCount = 0;
 		require plugin_dir_path(__FILE__).'partials/busqueda-canelo-public-conexion.php';
-		var_dump($modelo,$marca,$anio,$producto);
-		if($marca != ''){//Caso en que se inserte una marca
+		
+		if($marca != ''){//Case with marca
 			if( $modelo != '' && $producto != '' && $anio != ''){//Case with all entries
-
-			}else if( $modelo != '' && $producto != '' ){//Case with modelo, producto
+				$producto = $conexion->real_escape_string($producto);
+				$producto = strtoupper($producto);
+				$anio = (int)($anio);
+				$SQL = "SELECT id_store FROM doli_product WHERE rowid IN 
+						(SELECT fk_product FROM doli_categorie_product WHERE 
+						fk_categorie = ".$modelo.") AND label LIKE '%".$producto."%' 
+						AND ref IN (SELECT referencia from categorie_product WHERE 
+						".$anio." BETWEEN anio1 AND anio2)";
+				
+				$query = $conexion->query($SQL);
+				$rowCount = $query->num_rows;
+				if($rowCount > 0){
+					$iterador = 0;
+					while($row = $query->fetch_assoc()){
+						$IDposts[$iterador] = (int)$row['id_store'];
+						$iterador++;
+					}		
+				}
+			}else if( $modelo != '' && $producto != '' ){//Case with modelo, producto, marca
 				
 				$producto = $conexion->real_escape_string($producto);
 				$producto = strtoupper($producto);
 				$SQL = "SELECT id_store FROM doli_product WHERE rowid IN 
 						(SELECT fk_product FROM doli_categorie_product WHERE 
 						fk_categorie = ".$modelo.") AND label LIKE '%".$producto."%'";
-				var_dump($SQL);
+				
 				$query = $conexion->query($SQL);
 				$rowCount = $query->num_rows;
 				if($rowCount > 0){
@@ -198,11 +215,11 @@ class Busqueda_Canelo_Public {
 						$iterador++;
 					}		
 				}				
-			}else if($modelo != ''){//Case with just modelo
+			}else if($modelo != ''){//Case with just modelo and marca
 				$SQL = "SELECT id_store FROM doli_product WHERE rowid IN 
 						(SELECT fk_product FROM doli_categorie_product WHERE 
 						fk_categorie = ".$modelo.")";
-				var_dump($SQL);
+				
 				$query = $conexion->query($SQL);
 				$rowCount = $query->num_rows;
 				if($rowCount > 0){
@@ -212,13 +229,13 @@ class Busqueda_Canelo_Public {
 						$iterador++;
 					}		
 				}				
-			}else if($producto != ''){//case with just producto
+			}else if($producto != ''){//case with just producto and marca
 				$producto = $conexion->real_escape_string($producto);
 				$producto = strtoupper($producto);
 				$SQL = "SELECT id_store FROM doli_product WHERE rowid IN 
 						(SELECT fk_product FROM doli_categorie_product WHERE 
 						fk_categorie = ".$marca.") AND label LIKE '%".$producto."%'";
-				var_dump($SQL);
+				
 				$query = $conexion->query($SQL);
 				$rowCount = $query->num_rows;
 				if($rowCount > 0){
@@ -228,11 +245,80 @@ class Busqueda_Canelo_Public {
 						$iterador++;
 					}		
 				}				
-			}else{
-
+			}else if($anio != ''){//case with marca and anio
+				$SQL = "SELECT id_store FROM doli_product WHERE rowid IN 
+						(SELECT fk_product FROM doli_categorie_product WHERE 
+						fk_categorie = ".$marca.") AND ref IN (SELECT referencia from categorie_product WHERE ".$anio." BETWEEN anio1 AND anio2)";
+				
+				$query = $conexion->query($SQL);
+				$rowCount = $query->num_rows;
+				if($rowCount > 0){
+					$iterador = 0;
+					while($row = $query->fetch_assoc()){
+						$IDposts[$iterador] = (int)$row['id_store'];
+						$iterador++;
+					}		
+				}
+			}else{//case with just marca
+				$SQL = "SELECT id_store FROM doli_product WHERE rowid IN 
+						(SELECT fk_product FROM doli_categorie_product WHERE 
+						fk_categorie = ".$marca.")";
+				
+				$query = $conexion->query($SQL);
+				$rowCount = $query->num_rows;
+				if($rowCount > 0){
+					$iterador = 0;
+					while($row = $query->fetch_assoc()){
+						$IDposts[$iterador] = (int)$row['id_store'];
+						$iterador++;
+					}		
+				}
 			}
-		}	
-		var_dump($IDposts);	
+		}else{
+			if($producto != '' && $anio != ''){//case with producto and anio
+				$producto = $conexion->real_escape_string($producto);
+				$producto = strtoupper($producto);
+				$SQL = "SELECT id_store FROM doli_product WHERE label LIKE '%".$producto."%' 
+				AND ref IN (SELECT referencia from categorie_product WHERE ".$anio." BETWEEN anio1 AND anio2)";
+				
+				$query = $conexion->query($SQL);
+				$rowCount = $query->num_rows;
+				if($rowCount > 0){
+					$iterador = 0;
+					while($row = $query->fetch_assoc()){
+						$IDposts[$iterador] = (int)$row['id_store'];
+						$iterador++;
+					}		
+				}		
+			}else if($producto != ''){//case with just producto
+				$producto = $conexion->real_escape_string($producto);
+				$producto = strtoupper($producto);
+				$SQL = "SELECT id_store FROM doli_product WHERE label LIKE '%".$producto."%'";
+				
+				$query = $conexion->query($SQL);
+				$rowCount = $query->num_rows;
+				if($rowCount > 0){
+					$iterador = 0;
+					while($row = $query->fetch_assoc()){
+						$IDposts[$iterador] = (int)$row['id_store'];
+						$iterador++;
+					}		
+				}				
+			}else if($anio != ''){//case with just anio
+				$referencias = array();
+				$SQL = "SELECT id_store FROM doli_product WHERE ref IN (SELECT referencia from categorie_product WHERE ".$anio." BETWEEN anio1 AND anio2)";				
+				$query = $conexion->query($SQL);
+				$rowCount = $query->num_rows;
+				if($rowCount > 0){
+					$iterador = 0;
+					while($row = $query->fetch_assoc()){
+						$IDposts[$iterador] = (int)$row['id_store'];
+						$iterador++;
+					}		
+				}				
+			}
+		}
+		
 		$conexion->close();
 		return $IDposts;		
 	}
