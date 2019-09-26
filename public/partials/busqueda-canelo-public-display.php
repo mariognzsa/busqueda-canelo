@@ -53,10 +53,11 @@
 			    <th>
 			    	<input type="number" name="buscador_anio" id="buscador_anio"placeholder="Opcional"/>
 			    </th>
-			    <th><!-----------Paso de variables PHP con las URL generadas para su uso posterior en JS----------------------------------------->
-			    	<input type="hidden" name="URL_busqueda" id="URL_busqueda" value="<?php echo $URL_BUSQUEDA; ?>" />
-			    	<input type="hidden" name="URL_busqueda_vacia" id="URL_busqueda_vacia" value="<?php echo $URL_VACIA; ?>" />
-			    	<input type="submit" name="buscador_submit" value="Buscar" onclick="//getFormData();" class="btn btn-color-primary btn-style-default btn-size-default"/>
+			    <th>
+			<!-----------Bandera para saber cuando se usa nuestro buscador------------------->
+			    	<input type="hidden" name="bandera_canelo" id="bandera_canelo" value="1" />
+			    	
+			    	<input type="submit" name="buscador_submit" value="Buscar" class="btn btn-color-primary btn-style-default btn-size-default"/>
 			    </th>
 			</form>
         </tr>

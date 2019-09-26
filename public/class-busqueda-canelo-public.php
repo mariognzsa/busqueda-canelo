@@ -48,18 +48,11 @@ class Busqueda_Canelo_Public {
 	 * @param      string    $version    The version of this plugin.
 	 */
 	private $posts_array_id = array(92428,92420,92664,90514,1486,92466,92604);//array de ids de los posts para la query
-	private $post_marca;
-	private $post_modelo;
-	private $post_anio;
-	private $post_producto;
-
 
 	public function __construct( $plugin_name, $version ) {
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
-		$this->post_modelo = 926;
-
 	}
 
 	/**
@@ -122,46 +115,54 @@ class Busqueda_Canelo_Public {
 	}
 /*------------------Function hooked to the woocommerce product query---------------------*/
 	public function custom_advanced_search( $query ) {
-		global $wpdb;
-		if(isset($_POST['buscador_submit'])){
-			$this->post_modelo = $_POST['buscador_modelo'];
-			$this->post_marca = $_POST['buscador_marca'];
-			$this->post_producto = $_POST['buscador_producto'];
-			$this->post_anio = $_POST['buscador_anio'];
-			$_SESSION['buscador_modelo'] = $this->post_modelo;
+		//Using a flag to know wether they using our search form or not
+		if(isset($_POST['bandera_canelo']) || isset($_SESSION['bandera_canelo'])){
+			global $wpdb;
+			//Saving the search values in a session for later
+			if(isset($_POST['buscador_submit'])){
+				$_SESSION['bandera_canelo'] = $_POST['bandera_canelo'];
+				$_SESSION['buscador_modelo'] = $_POST['buscador_modelo'];
+				$_SESSION['buscador_marca'] = $_POST['buscador_marca'];
+				$_SESSION['buscador_producto'] = $_POST['buscador_producto'];
+				$_SESSION['buscador_anio'] = $_POST['buscador_anio'];
+			}
+			//getting the ids from the search
+			$post_ids = $this->bc_query(
+				$_SESSION['buscador_modelo'], 
+				$_SESSION['buscador_marca'], 
+				$_SESSION['buscador_anio'], 
+				$_SESSION['buscador_producto']
+			);
+		    // don't alter search results in the admin!
+		    if( $query->is_admin ) return $query;
+		    //The actual filter when searching
+		    if( $query->is_search ) {
+		        
+		        // custom query
+		      	$query_string = 'SELECT * FROM '.$wpdb->posts.' WHERE ID IN ('.implode(',',array_map('intval',$post_ids)).') ';
+		        // execute custom query
+		        $results = $wpdb->get_results($query_string, OBJECT);
+
+		        // map results to a simple array of post IDs
+		        $posts = array_map( function($post) {
+		            return $post->ID;
+		        }, $results );
+		        // prevent empty array
+		        $posts = count($posts) ? $posts : array(-1);
+		        // only get posts from our custom query!
+		        $query->set( 'post__in', $posts );
+		        $query->set( 'posts_per_page', 12 );
+		    }
 		}
-		$wpdb->canelo_query_ids = $this->bc_query($_SESSION['buscador_modelo'], $this->post_marca, $this->post_anio, $this->post_producto);
-		$post_ids = $wpdb->canelo_query_ids;
-		var_dump($post_ids);
-	    // don't alter search results in the admin!
-	    if( $query->is_admin ) return $query;
-	    if( $query->is_search ) {
-	        
-	        // custom query
-	      	$query_string = 'SELECT * FROM '.$wpdb->posts.' WHERE ID IN ('.implode(',',array_map('intval',$post_ids)).') ';
-	        // execute custom query
-	        $results = $wpdb->get_results($query_string, OBJECT);
-
-	        // map results to a simple array of post IDs
-	        $posts = array_map( function($post) {
-	            return $post->ID;
-	        }, $results );
-	        // prevent empty array
-	        $posts = count($posts) ? $posts : array(-1);
-	        // only get posts from our custom query!
-	        $query->set( 'post__in', $posts );
-	        $query->set( 'posts_per_page', 12 );
-	    }
-
 	    return $query;
 	}
-
+/*----------Function hooked on init to keep the session-------------------------------*/
 	public function canelo_session_start() {
 	    if( ! session_id() ) {
 	        session_start();
 	    }
 	}
-	/*--------------- Funcion que se manda llamar con el post de las llamadas AJAX-------*/
+	/*--------------- Function called in ajax methods -------*/
 	public function actualizar(){
 		if(isset($_POST["buscador_marca_label"])){//aqui entra para el select dependiente
 			require plugin_dir_path(__FILE__).'partials/busqueda-canelo-public-update-select.php';
@@ -176,18 +177,62 @@ class Busqueda_Canelo_Public {
 		$IDposts = array();
 		$rowCount = 0;
 		require plugin_dir_path(__FILE__).'partials/busqueda-canelo-public-conexion.php';
+		var_dump($modelo,$marca,$anio,$producto);
+		if($marca != ''){//Caso en que se inserte una marca
+			if( $modelo != '' && $producto != '' && $anio != ''){//Case with all entries
 
-		$SQL = 'SELECT id_store FROM doli_product WHERE rowid in (SELECT fk_product FROM doli_categorie_product WHERE fk_categorie = '.$modelo.' )';
-		$query = $conexion->query($SQL);
+			}else if( $modelo != '' && $producto != '' ){//Case with modelo, producto
+				
+				$producto = $conexion->real_escape_string($producto);
+				$producto = strtoupper($producto);
+				$SQL = "SELECT id_store FROM doli_product WHERE rowid IN 
+						(SELECT fk_product FROM doli_categorie_product WHERE 
+						fk_categorie = ".$modelo.") AND label LIKE '%".$producto."%'";
+				var_dump($SQL);
+				$query = $conexion->query($SQL);
+				$rowCount = $query->num_rows;
+				if($rowCount > 0){
+					$iterador = 0;
+					while($row = $query->fetch_assoc()){
+						$IDposts[$iterador] = (int)$row['id_store'];
+						$iterador++;
+					}		
+				}				
+			}else if($modelo != ''){//Case with just modelo
+				$SQL = "SELECT id_store FROM doli_product WHERE rowid IN 
+						(SELECT fk_product FROM doli_categorie_product WHERE 
+						fk_categorie = ".$modelo.")";
+				var_dump($SQL);
+				$query = $conexion->query($SQL);
+				$rowCount = $query->num_rows;
+				if($rowCount > 0){
+					$iterador = 0;
+					while($row = $query->fetch_assoc()){
+						$IDposts[$iterador] = (int)$row['id_store'];
+						$iterador++;
+					}		
+				}				
+			}else if($producto != ''){//case with just producto
+				$producto = $conexion->real_escape_string($producto);
+				$producto = strtoupper($producto);
+				$SQL = "SELECT id_store FROM doli_product WHERE rowid IN 
+						(SELECT fk_product FROM doli_categorie_product WHERE 
+						fk_categorie = ".$marca.") AND label LIKE '%".$producto."%'";
+				var_dump($SQL);
+				$query = $conexion->query($SQL);
+				$rowCount = $query->num_rows;
+				if($rowCount > 0){
+					$iterador = 0;
+					while($row = $query->fetch_assoc()){
+						$IDposts[$iterador] = (int)$row['id_store'];
+						$iterador++;
+					}		
+				}				
+			}else{
 
-		$rowCount = $query->num_rows;
-		if($rowCount > 0){
-			$iterador = 0;
-			while($row = $query->fetch_assoc()){
-				$IDposts[$iterador] = (int)$row['id_store'];
-				$iterador++;
-			}		
-		}
+			}
+		}	
+		var_dump($IDposts);	
 		$conexion->close();
 		return $IDposts;		
 	}
