@@ -181,6 +181,9 @@ class Busqueda_Canelo {
 		$this->loader->add_action( 'wp_ajax_actualizar', $plugin_public, 'busqueda');
 		$this->loader->add_action( 'wp_ajax_nopriv_actualizar', $plugin_public, 'busqueda');
 
+		$this->loader->add_action( 'woocommerce_product_query', $plugin_public, 'custom_advanced_search');
+		$this->loader->add_action('init', $plugin_public, 'canelo_session_start', 1);
+
 	}
 
 	/**

@@ -21,9 +21,9 @@
             <th>Año</th>
         </tr>
         <tr>
-        	<form name = "forma_buscador" id="forma_buscador" action="" method="POST" >
+        	<form name = "forma_buscador" id="forma_buscador" action="?s=&post_type=product" method="POST" >
         		<th>
-			    	<input type="text" name="buscador_producto" placeholder="Ej... Faro">
+			    	<input type="text" name="buscador_producto" id="buscador_producto"placeholder="Ej... Faro"/>
 			    </th>
             	<th>
             		<?php
@@ -31,7 +31,7 @@
 	    			$query = $conexion->query("SELECT rowid, label FROM doli_categorie WHERE fk_parent = 1");
             		$rowCount = $query->num_rows;
 	    			?> 
-			      	<select name="buscador_marca" id="buscador_marca">
+			      	<select name="buscador_marca" id="buscador_marca" required>
 			      		<option value="">Selecciona Marca</option>
 			      		<?php
 			      		if($rowCount > 0){
@@ -51,16 +51,16 @@
 			        </select>
 			    </th>
 			    <th>
-			    	<input type="text" name="buscador_anio">
+			    	<input type="number" name="buscador_anio" id="buscador_anio"placeholder="Opcional"/>
 			    </th>
-			    <th>
-			    	<input type="hidden" name="URL_busqueda" id="URL_busqueda" value="<?php echo $URL_SUBMIT; ?>" />
-			    	<input type="button" name="buscador_submit" value="Buscar" onclick="getFormData();"/>
+			    <th><!-----------Paso de variables PHP con las URL generadas para su uso posterior en JS----------------------------------------->
+			    	<input type="hidden" name="URL_busqueda" id="URL_busqueda" value="<?php echo $URL_BUSQUEDA; ?>" />
+			    	<input type="hidden" name="URL_busqueda_vacia" id="URL_busqueda_vacia" value="<?php echo $URL_VACIA; ?>" />
+			    	<input type="submit" name="buscador_submit" value="Buscar" onclick="//getFormData();" class="btn btn-color-primary btn-style-default btn-size-default"/>
 			    </th>
 			</form>
         </tr>
     </table>
 </div>
-
 
 
